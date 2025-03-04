@@ -1,0 +1,23 @@
+# Node modules directory
+node_modules/
+
+# Log files
+*.log
+
+# Environment files (e.g., .env)
+.env
+
+# OS-specific files
+.DS_Store           # macOS
+Thumbs.db           # Windows
+
+# IDE and editor directories
+.vscode/
+.idea/
+
+# NPM debug files
+npm-debug.log*
+
+# Yarn lock file
+yarn-debug.log*
+yarn-error.log*

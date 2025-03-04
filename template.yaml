@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  GraphQLAPI:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: graphql-server.graphqlHandler
+      Runtime: nodejs14.x
+      MemorySize: 1024
+      Timeout: 10
+      Environment:
+        Variables:
+          DB_SECRET_ARN: !Ref DbSecret
+          DB_RESOURCE_ARN: !Ref DbResource
+          DB_NAME: "your-database-name"
+      Events:
+        GraphQLAPI:
+          Type: Api
+          Properties:
+            Path: /graphql
+            Method: POST
