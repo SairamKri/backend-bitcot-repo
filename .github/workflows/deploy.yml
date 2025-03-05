@@ -1,0 +1,76 @@
+name: CICD
+
+on:
+  push:
+    branches: [ admin-client-hr-backend-aws ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: 'us-east-1'
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          REPOSITORY: bitcotrepo
+        run: |
+          # Build and push Docker image to ECR
+          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT    
+
+      - name: Update Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: bitcot-task-definition.json 
+          container-name: bitcot-container
+          image: ${{ steps.build-image.outputs.image }}  
+
+      - name: Deploy updated Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: bitcot-service
+          cluster: bitcot-cluster-dev
+          wait-for-service-stability: true
+
+      - name: Package and Upload Lambda Code to S3
+        run: |
+          LAMBDA_BUCKET="bitcot-lambda-bucket"
+          LAMBDA_FUNCTION_NAME="bitcot-lambda-function"
+          ZIP_FILE="lambda-deployment.zip"
+
+          echo "🔹 Packaging Lambda function..."
+          zip -r $ZIP_FILE . -x '*.git*'
+
+          echo "🔹 Uploading to S3..."
+          aws s3 cp $ZIP_FILE s3://$LAMBDA_BUCKET/$ZIP_FILE
+
+      - name: Update Lambda Function Code
+        run: |
+          aws lambda update-function-code \
+            --function-name bitcot-lambda-function \
+            --s3-bucket bitcot-lambda-bucket \
+            --s3-key lambda-deployment.zip
+
+      - name: Publish New Lambda Version
+        run: |
+          aws lambda publish-version --function-name bitcot-lambda-function
