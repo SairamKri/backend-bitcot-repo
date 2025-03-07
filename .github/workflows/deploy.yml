@@ -52,25 +52,25 @@ jobs:
           cluster: bitcot-cluster-dev
           wait-for-service-stability: true
 
-      - name: Package and Upload Lambda Code to S3
-        run: |
-          LAMBDA_BUCKET="bitcot-lambda-bucket"
-          LAMBDA_FUNCTION_NAME="bitcot-lambda-function"
-          ZIP_FILE="lambda-deployment.zip"
+      # - name: Package and Upload Lambda Code to S3
+      #   run: |
+      #     LAMBDA_BUCKET="bitcot-lambda-bucket"
+      #     LAMBDA_FUNCTION_NAME="bitcot-lambda-function"
+      #     ZIP_FILE="lambda-deployment.zip"
 
-          echo "🔹 Packaging Lambda function..."
-          zip -r $ZIP_FILE . -x '*.git*'
+      #     echo "🔹 Packaging Lambda function..."
+      #     zip -r $ZIP_FILE . -x '*.git*'
 
-          echo "🔹 Uploading to S3..."
-          aws s3 cp $ZIP_FILE s3://$LAMBDA_BUCKET/$ZIP_FILE
+      #     echo "🔹 Uploading to S3..."
+      #     aws s3 cp $ZIP_FILE s3://$LAMBDA_BUCKET/$ZIP_FILE
 
-      - name: Update Lambda Function Code
-        run: |
-          aws lambda update-function-code \
-            --function-name bitcot-lambda-function \
-            --s3-bucket bitcot-lambda-bucket \
-            --s3-key lambda-deployment.zip
+      # - name: Update Lambda Function Code
+      #   run: |
+      #     aws lambda update-function-code \
+      #       --function-name bitcot-lambda-function \
+      #       --s3-bucket bitcot-lambda-bucket \
+      #       --s3-key lambda-deployment.zip
 
-      - name: Publish a New Lambda Version
-        run: |
-          aws lambda publish-version --function-name bitcot-lambda-function
+      # - name: Publish a New Lambda Version
+      #   run: |
+      #     aws lambda publish-version --function-name bitcot-lambda-function
