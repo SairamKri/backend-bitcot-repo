@@ -71,6 +71,6 @@ jobs:
             --s3-bucket bitcot-lambda-bucket \
             --s3-key lambda-deployment.zip
 
-      - name: Publish New Lambda Version
+      - name: Publish a New Lambda Version
         run: |
           aws lambda publish-version --function-name bitcot-lambda-function
