@@ -25,6 +25,17 @@ const connection = mysql.createPool({
     queueLimit: 0
   });
 
+  app.get('/health', async (req, res) => {
+    try {
+        // Attempt to fetch a single item just to check database connectivity
+        const [result] = await connection.promise().query('SELECT 1');
+        res.status(200).send({ status: 'ok', dbConnection: 'successful', timestamp: new Date() });
+    } catch (error) {
+        console.error('Health check failed:', error);
+        res.status(500).send({ status: 'error', dbConnection: 'failed', timestamp: new Date() });
+    }
+});
+
 // Sample GraphQL Schema
 const typeDefs = gql`
   type Item {
