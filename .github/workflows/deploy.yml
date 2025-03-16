@@ -32,8 +32,8 @@ jobs:
           REPOSITORY: bitcotrepo
         run: |
           # Build and push Docker image to ECR
-          docker build -t $ECR_REGISTRY/$REPOSITORY:"Latest" .
-          docker push $ECR_REGISTRY/$REPOSITORY:"Latest"
+          docker build -t $ECR_REGISTRY/$REPOSITORY:Latest .
+          docker push $ECR_REGISTRY/$REPOSITORY:Latest
           echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT    
 
       - name: Update Amazon ECS task definition
@@ -42,7 +42,7 @@ jobs:
         with:
           task-definition: Bitcot-task-definition.json 
           container-name: bitcot-container
-          image: ${{ steps.build-image.outputs.image}}:"Latest"  
+          image: ${{ steps.build-image.outputs.image}}:Latest  
 
       - name: Deploy updated Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
